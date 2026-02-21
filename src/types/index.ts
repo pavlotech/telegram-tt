@@ -1,4 +1,4 @@
-import type { TeactNode } from '../lib/teact/teact';
+import type { TeactNode } from "../lib/teact/teact";
 
 import type {
   ApiAttachment,
@@ -42,14 +42,14 @@ import type {
   ApiVideo,
   MediaContent,
   StarGiftAttributeIdModel,
-} from '../api/types';
-import type { DC_IDS } from '../config';
-import type { SearchResultKey } from '../util/keys/searchResultKey';
-import type { IconName } from './icons';
+} from "../api/types";
+import type { DC_IDS } from "../config";
+import type { SearchResultKey } from "../util/keys/searchResultKey";
+import type { IconName } from "./icons";
 
 export type TextPart = TeactNode;
 
-export type DcId = typeof DC_IDS[number];
+export type DcId = (typeof DC_IDS)[number];
 
 export type SessionUserInfo = {
   userId?: string;
@@ -66,7 +66,8 @@ export type SharedSessionData = {
   date?: number;
   dcId: number;
   isTest?: true;
-} & Partial<Record<`dc${DcId}_${'auth_key' | 'server_salt'}`, string>> & SessionUserInfo;
+} & Partial<Record<`dc${DcId}_${"auth_key" | "server_salt"}`, string>> &
+  SessionUserInfo;
 
 export type AccountInfo = {
   isTest?: true;
@@ -84,7 +85,7 @@ export enum FocusDirection {
   Static,
 }
 
-export type ScrollTargetPosition = ScrollLogicalPosition | 'centerOrTop';
+export type ScrollTargetPosition = ScrollLogicalPosition | "centerOrTop";
 
 export interface IAlbum {
   albumId: string;
@@ -98,15 +99,25 @@ export interface IAlbum {
 
 export type ThreadId = string | number;
 
-export type ThemeKey = 'light' | 'dark';
+export type ThemeKey = "light" | "dark";
 export type AnimationLevel = 0 | 1 | 2;
-export type FoldersPosition = 'top' | 'left';
-export type PerformanceTypeKey = (
-  'pageTransitions' | 'messageSendingAnimations' | 'mediaViewerAnimations'
-  | 'messageComposerAnimations' | 'contextMenuAnimations' | 'contextMenuBlur' | 'rightColumnAnimations'
-  | 'animatedEmoji' | 'loopAnimatedStickers' | 'reactionEffects' | 'stickerEffects' | 'autoplayGifs' | 'autoplayVideos'
-  | 'storyRibbonAnimations' | 'snapEffect'
-);
+export type FoldersPosition = "top" | "left";
+export type PerformanceTypeKey =
+  | "pageTransitions"
+  | "messageSendingAnimations"
+  | "mediaViewerAnimations"
+  | "messageComposerAnimations"
+  | "contextMenuAnimations"
+  | "contextMenuBlur"
+  | "rightColumnAnimations"
+  | "animatedEmoji"
+  | "loopAnimatedStickers"
+  | "reactionEffects"
+  | "stickerEffects"
+  | "autoplayGifs"
+  | "autoplayVideos"
+  | "storyRibbonAnimations"
+  | "snapEffect";
 export type PerformanceType = Record<PerformanceTypeKey, boolean>;
 
 export interface IThemeSettings {
@@ -116,12 +127,28 @@ export interface IThemeSettings {
   isBlurred?: boolean;
 }
 
-export type LangCode = (
-  'en' | 'ar' | 'be' | 'ca' | 'nl' | 'fr' | 'de' | 'id' | 'it' | 'ko' | 'ms' | 'fa' | 'pl' | 'pt-br' | 'ru' | 'es'
-  | 'tr' | 'uk' | 'uz'
-);
+export type LangCode =
+  | "en"
+  | "ar"
+  | "be"
+  | "ca"
+  | "nl"
+  | "fr"
+  | "de"
+  | "id"
+  | "it"
+  | "ko"
+  | "ms"
+  | "fa"
+  | "pl"
+  | "pt-br"
+  | "ru"
+  | "es"
+  | "tr"
+  | "uk"
+  | "uz";
 
-export type TimeFormat = '24h' | '12h';
+export type TimeFormat = "24h" | "12h";
 
 export interface AccountSettings {
   hasWebNotifications: boolean;
@@ -267,10 +294,22 @@ export enum SettingsScreens {
   Passkeys,
 }
 
-export type StickerSetOrReactionsSetOrRecent = Pick<ApiStickerSet, (
-  'id' | 'accessHash' | 'title' | 'count' | 'stickers' | 'isEmoji' | 'installedDate' | 'isArchived' |
-  'hasThumbnail' | 'hasStaticThumb' | 'hasAnimatedThumb' | 'hasVideoThumb' | 'thumbCustomEmojiId'
-)> & { reactions?: ApiReactionWithPaid[] };
+export type StickerSetOrReactionsSetOrRecent = Pick<
+  ApiStickerSet,
+  | "id"
+  | "accessHash"
+  | "title"
+  | "count"
+  | "stickers"
+  | "isEmoji"
+  | "installedDate"
+  | "isArchived"
+  | "hasThumbnail"
+  | "hasStaticThumb"
+  | "hasAnimatedThumb"
+  | "hasVideoThumb"
+  | "thumbCustomEmojiId"
+> & { reactions?: ApiReactionWithPaid[] };
 
 export enum LeftColumnContent {
   ChatList,
@@ -311,6 +350,7 @@ export enum RightColumnContent {
   EditTopic,
   MonetizationStatistics,
   NewGroup,
+  AiAgent,
 }
 
 export type MediaViewerMedia = ApiPhoto | ApiVideo | ApiDocument;
@@ -390,23 +430,29 @@ export enum NewChatMembersProgress {
 }
 
 export type ProfileTabType =
-  | 'members'
-  | 'commonChats'
-  | 'media'
-  | 'previewMedia'
-  | 'documents'
-  | 'links'
-  | 'audio'
-  | 'voice'
-  | 'gif'
-  | 'stories'
-  | 'storiesArchive'
-  | 'similarChannels'
-  | 'similarBots'
-  | 'dialogs'
-  | 'gifts';
-export type SharedMediaType = 'media' | 'documents' | 'links' | 'audio' | 'voice' | 'gif';
-export type MiddleSearchType = 'chat' | 'myChats' | 'channels';
+  | "members"
+  | "commonChats"
+  | "media"
+  | "previewMedia"
+  | "documents"
+  | "links"
+  | "audio"
+  | "voice"
+  | "gif"
+  | "stories"
+  | "storiesArchive"
+  | "similarChannels"
+  | "similarBots"
+  | "dialogs"
+  | "gifts";
+export type SharedMediaType =
+  | "media"
+  | "documents"
+  | "links"
+  | "audio"
+  | "voice"
+  | "gif";
+export type MiddleSearchType = "chat" | "myChats" | "channels";
 export type MiddleSearchParams = {
   requestedQuery?: string;
   savedTag?: ApiReaction;
@@ -460,7 +506,7 @@ export enum PaymentStep {
   ConfirmPayment,
 }
 
-export const UPLOADING_WALLPAPER_SLUG = 'UPLOADING_WALLPAPER_SLUG';
+export const UPLOADING_WALLPAPER_SLUG = "UPLOADING_WALLPAPER_SLUG";
 
 export enum ManagementScreens {
   Initial,
@@ -487,7 +533,7 @@ export enum ManagementScreens {
   NewDiscussionGroup,
 }
 
-export type ManagementType = 'user' | 'group' | 'channel' | 'bot';
+export type ManagementType = "user" | "group" | "channel" | "bot";
 
 export type EmojiKeywords = {
   isLoading?: boolean;
@@ -508,8 +554,18 @@ export type InlineBotSettings = {
   cacheTime: number;
 };
 
-export type CustomPeerType = 'premium' | 'toBeDistributed' | 'contacts' | 'nonContacts'
-  | 'groups' | 'channels' | 'bots' | 'excludeMuted' | 'excludeArchived' | 'excludeRead' | 'stars';
+export type CustomPeerType =
+  | "premium"
+  | "toBeDistributed"
+  | "contacts"
+  | "nonContacts"
+  | "groups"
+  | "channels"
+  | "bots"
+  | "excludeMuted"
+  | "excludeArchived"
+  | "excludeRead"
+  | "stars";
 
 export type CustomPeer = {
   isCustomPeer: true;
@@ -524,24 +580,24 @@ export type CustomPeer = {
   customPeerAvatarColor?: string;
   withPremiumGradient?: boolean;
   isPremium?: boolean;
-} & ({
-  titleKey: string;
-  title?: undefined;
-} | {
-  title: string;
-  titleKey?: undefined;
-});
+} & (
+  | {
+      titleKey: string;
+      title?: undefined;
+    }
+  | {
+      title: string;
+      titleKey?: undefined;
+    }
+);
 
 export type UniqueCustomPeer<T = CustomPeerType> = CustomPeer & {
   type: T;
 };
 
-export type MessageListType =
-  'thread'
-  | 'pinned'
-  | 'scheduled';
+export type MessageListType = "thread" | "pinned" | "scheduled";
 
-export type ChatListType = 'active' | 'archived' | 'saved';
+export type ChatListType = "active" | "archived" | "saved";
 
 export interface MessageList {
   chatId: string;
@@ -559,31 +615,38 @@ export interface ActiveEmojiInteraction {
   isReversed?: boolean;
 }
 
-export type ActiveDownloads = Record<string, {
-  format: ApiMediaFormat;
-  filename: string;
-  size: number;
-  originChatId?: string;
-  originMessageId?: number;
-}>;
+export type ActiveDownloads = Record<
+  string,
+  {
+    format: ApiMediaFormat;
+    filename: string;
+    size: number;
+    originChatId?: string;
+    originMessageId?: number;
+  }
+>;
 
 export type IDimensions = {
   width: number;
   height: number;
 };
 
-export type StarsTransactionType = 'all' | 'inbound' | 'outbound';
-export type StarsTransactionHistory = Record<StarsTransactionType, {
-  transactions: ApiStarsTransaction[];
-  nextOffset?: string;
-} | undefined>;
+export type StarsTransactionType = "all" | "inbound" | "outbound";
+export type StarsTransactionHistory = Record<
+  StarsTransactionType,
+  | {
+      transactions: ApiStarsTransaction[];
+      nextOffset?: string;
+    }
+  | undefined
+>;
 export type StarsSubscriptions = {
   list: ApiStarsSubscription[];
   nextOffset?: string;
   isLoading?: boolean;
 };
 
-export type ConfettiStyle = 'poppers' | 'top-down';
+export type ConfettiStyle = "poppers" | "top-down";
 
 export type StarGiftInfo = {
   peerId: string;
@@ -646,13 +709,15 @@ export type TranslatedMessage = {
   summary?: TextSummary;
 };
 
-export type TextSummary = {
-  isPending?: false;
-  text: ApiFormattedText;
-} | {
-  isPending: true;
-  text?: undefined;
-};
+export type TextSummary =
+  | {
+      isPending?: false;
+      text: ApiFormattedText;
+    }
+  | {
+      isPending: true;
+      text?: undefined;
+    };
 
 export type ChatTranslatedMessages = {
   byLangCode: Record<string, Record<number, TranslatedMessage>>;
@@ -668,15 +733,18 @@ export type SimilarBotsInfo = {
   count: number;
 };
 
-export type ConfettiParams = OptionalCombine<{
-  style?: ConfettiStyle;
-  withStars?: boolean;
-}, {
-  top?: number;
-  left?: number;
-  width?: number;
-  height?: number;
-}>;
+export type ConfettiParams = OptionalCombine<
+  {
+    style?: ConfettiStyle;
+    withStars?: boolean;
+  },
+  {
+    top?: number;
+    left?: number;
+    width?: number;
+    height?: number;
+  }
+>;
 
 export interface Size {
   width: number;
@@ -688,22 +756,29 @@ export interface Point {
   y: number;
 }
 
-export type WebPageMediaSize = 'large' | 'small';
+export type WebPageMediaSize = "large" | "small";
 
-export type AttachmentCompression = 'compress' | 'original';
+export type AttachmentCompression = "compress" | "original";
 
-export type StarGiftCategory = 'all' | 'myUnique' | 'collectible';
+export type StarGiftCategory = "all" | "myUnique" | "collectible";
 
-export type CallSound = (
-  'join' | 'allowTalk' | 'leave' | 'connecting' | 'incoming' | 'end' | 'connect' | 'busy' | 'ringing'
-);
+export type CallSound =
+  | "join"
+  | "allowTalk"
+  | "leave"
+  | "connecting"
+  | "incoming"
+  | "end"
+  | "connect"
+  | "busy"
+  | "ringing";
 
 export type BotAppPermissions = {
   geolocation?: boolean;
 };
 
 export type GiftProfileFilterOptions = {
-  sortType: 'byDate' | 'byValue';
+  sortType: "byDate" | "byValue";
   shouldIncludeUnlimited: boolean;
   shouldIncludeLimited: boolean;
   shouldIncludeUpgradable: boolean;
@@ -711,7 +786,7 @@ export type GiftProfileFilterOptions = {
   shouldIncludeDisplayed: boolean;
   shouldIncludeHidden: boolean;
 };
-export type ResaleGiftsSortType = 'byDate' | 'byPrice' | 'byNumber';
+export type ResaleGiftsSortType = "byDate" | "byPrice" | "byNumber";
 export type ResaleGiftsFilterOptions = {
   sortType: ResaleGiftsSortType;
   modelAttributes?: StarGiftAttributeIdModel[];

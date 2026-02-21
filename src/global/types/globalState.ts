@@ -56,7 +56,7 @@ import type {
   ApiWallpaper,
   ApiWebPage,
   ApiWebSession,
-} from '../../api/types';
+} from "../../api/types";
 import type {
   AccountSettings,
   AttachmentCompression,
@@ -76,10 +76,11 @@ import type {
   ThreadId,
   TopicsInfo,
   WebPageMediaSize,
-} from '../../types';
-import type { RegularLangFnParameters } from '../../util/localization';
-import type { SharedState } from './sharedState';
-import type { TabState } from './tabState';
+} from "../../types";
+import type { RegularLangFnParameters } from "../../util/localization";
+import type { SharedState } from "./sharedState";
+import type { TabState } from "./tabState";
+import type { AiAgentState } from "../../modules/aiAgent/types";
 
 export type GlobalState = {
   cacheVersion: number;
@@ -225,33 +226,47 @@ export type GlobalState = {
       saved?: Record<string, number>;
     };
     topicsInfoById: Record<string, TopicsInfo>;
-    loadingParameters: Record<ChatListType, {
-      nextOffsetId?: number;
-      nextOffsetPeerId?: string;
-      nextOffsetDate?: number;
-    }>;
+    loadingParameters: Record<
+      ChatListType,
+      {
+        nextOffsetId?: number;
+        nextOffsetPeerId?: string;
+        nextOffsetDate?: number;
+      }
+    >;
     forDiscussionIds?: string[];
     // Obtained from GetFullChat / GetFullChannel
     fullInfoById: Record<string, ApiChatFullInfo>;
-    similarChannelsById: Partial<Record<string, {
-      isExpanded: boolean;
-      similarChannelIds?: string[];
-      count?: number;
-    }>>;
+    similarChannelsById: Partial<
+      Record<
+        string,
+        {
+          isExpanded: boolean;
+          similarChannelIds?: string[];
+          count?: number;
+        }
+      >
+    >;
     notifyExceptionById: Record<string, ApiPeerNotifySettings>;
 
     similarBotsById: Record<string, SimilarBotsInfo>;
   };
 
   messages: {
-    byChatId: Record<string, {
-      byId: Record<number, ApiMessage>;
-      summaryById: Record<number, TextSummary>;
-      threadsById: Record<ThreadId, Thread>;
-    }>;
-    playbackByChatId: Record<string, {
-      byId: Record<number, number>;
-    }>;
+    byChatId: Record<
+      string,
+      {
+        byId: Record<number, ApiMessage>;
+        summaryById: Record<number, TextSummary>;
+        threadsById: Record<ThreadId, Thread>;
+      }
+    >;
+    playbackByChatId: Record<
+      string,
+      {
+        byId: Record<number, number>;
+      }
+    >;
     sponsoredByChatId: Record<string, ApiSponsoredMessage>;
     pollById: Record<string, ApiPoll>;
     webPageById: Record<string, ApiWebPage>;
@@ -277,9 +292,12 @@ export type GlobalState = {
   };
 
   scheduledMessages: {
-    byChatId: Record<string, {
-      byId: Record<number, ApiMessage>;
-    }>;
+    byChatId: Record<
+      string,
+      {
+        byId: Record<number, ApiMessage>;
+      }
+    >;
   };
 
   quickReplies: {
@@ -298,9 +316,12 @@ export type GlobalState = {
   phoneCall?: ApiPhoneCall;
 
   fileUploads: {
-    byMessageKey: Record<string, {
-      progress: number;
-    }>;
+    byMessageKey: Record<
+      string,
+      {
+        progress: number;
+      }
+    >;
   };
 
   recentEmojis: string[];
@@ -488,12 +509,11 @@ export type GlobalState = {
     balance: ApiTonAmount;
     history: StarsTransactionHistory;
   };
+  aiAgent?: AiAgentState;
 };
 
 export type RequiredGlobalState = GlobalState & { _: never };
 export type ActionReturnType = GlobalState | void | Promise<void>;
-export type TabArgs<T> = T extends RequiredGlobalState ? [
-  tabId: number,
-] : [
-  tabId?: number | undefined,
-];
+export type TabArgs<T> = T extends RequiredGlobalState
+  ? [tabId: number]
+  : [tabId?: number | undefined];

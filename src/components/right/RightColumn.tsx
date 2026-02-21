@@ -1,47 +1,56 @@
-import type { FC } from '@teact';
-import { memo, useEffect, useRef, useState } from '@teact';
-import { getActions, withGlobal } from '../../global';
+import type { FC } from "@teact";
+import { memo, useEffect, useRef, useState } from "@teact";
+import { getActions, withGlobal } from "../../global";
 
-import type { AnimationLevel, ThreadId } from '../../types';
-import { ManagementScreens, NewChatMembersProgress, ProfileState, RightColumnContent } from '../../types';
+import type { AnimationLevel, ThreadId } from "../../types";
+import {
+  ManagementScreens,
+  NewChatMembersProgress,
+  ProfileState,
+  RightColumnContent,
+} from "../../types";
 
-import { ANIMATION_END_DELAY, MIN_SCREEN_WIDTH_FOR_STATIC_RIGHT_COLUMN } from '../../config';
-import { getIsSavedDialog } from '../../global/helpers';
+import {
+  ANIMATION_END_DELAY,
+  MIN_SCREEN_WIDTH_FOR_STATIC_RIGHT_COLUMN,
+} from "../../config";
+import { getIsSavedDialog } from "../../global/helpers";
 import {
   selectAreActiveChatsLoaded,
   selectCurrentMessageList,
   selectIsChatWithSelf,
   selectRightColumnContentKey,
   selectTabState,
-} from '../../global/selectors';
-import { selectSharedSettings } from '../../global/selectors/sharedState.ts';
-import captureEscKeyListener from '../../util/captureEscKeyListener';
-import { resolveTransitionName } from '../../util/resolveTransitionName.ts';
+} from "../../global/selectors";
+import { selectSharedSettings } from "../../global/selectors/sharedState.ts";
+import captureEscKeyListener from "../../util/captureEscKeyListener";
+import { resolveTransitionName } from "../../util/resolveTransitionName.ts";
 
-import useCurrentOrPrev from '../../hooks/useCurrentOrPrev';
-import useHistoryBack from '../../hooks/useHistoryBack';
-import useLastCallback from '../../hooks/useLastCallback';
-import useLayoutEffectWithPrevDeps from '../../hooks/useLayoutEffectWithPrevDeps';
-import useScrollNotch from '../../hooks/useScrollNotch.ts';
-import useWindowSize from '../../hooks/window/useWindowSize';
+import useCurrentOrPrev from "../../hooks/useCurrentOrPrev";
+import useHistoryBack from "../../hooks/useHistoryBack";
+import useLastCallback from "../../hooks/useLastCallback";
+import useLayoutEffectWithPrevDeps from "../../hooks/useLayoutEffectWithPrevDeps";
+import useScrollNotch from "../../hooks/useScrollNotch.ts";
+import useWindowSize from "../../hooks/window/useWindowSize";
 
-import Transition from '../ui/Transition';
-import AddChatMembers from './AddChatMembers';
-import CreateTopic from './CreateTopic.async';
-import EditTopic from './EditTopic.async';
-import GifSearch from './GifSearch.async';
-import Management from './management/Management.async';
-import PollResults from './PollResults.async';
-import Profile from './Profile';
-import RightHeader from './RightHeader';
-import BoostStatistics from './statistics/BoostStatistics';
-import MessageStatistics from './statistics/MessageStatistics.async';
-import MonetizationStatistics from './statistics/MonetizationStatistics';
-import Statistics from './statistics/Statistics.async';
-import StoryStatistics from './statistics/StoryStatistics.async';
-import StickerSearch from './StickerSearch.async';
+import Transition from "../ui/Transition";
+import AddChatMembers from "./AddChatMembers";
+import CreateTopic from "./CreateTopic.async";
+import EditTopic from "./EditTopic.async";
+import GifSearch from "./GifSearch.async";
+import Management from "./management/Management.async";
+import PollResults from "./PollResults.async";
+import Profile from "./Profile";
+import RightHeader from "./RightHeader";
+import BoostStatistics from "./statistics/BoostStatistics";
+import MessageStatistics from "./statistics/MessageStatistics.async";
+import MonetizationStatistics from "./statistics/MonetizationStatistics";
+import Statistics from "./statistics/Statistics.async";
+import StoryStatistics from "./statistics/StoryStatistics.async";
+import StickerSearch from "./StickerSearch.async";
+import AiRightPanel from "../../modules/aiAgent/AiRightPanel";
 
-import './RightColumn.scss';
+import "./RightColumn.scss";
 
 interface OwnProps {
   isMobile?: boolean;
@@ -66,7 +75,9 @@ const MAIN_SCREENS_COUNT = Object.keys(RightColumnContent).length / 2;
 const MANAGEMENT_SCREENS_COUNT = Object.keys(ManagementScreens).length / 2;
 
 function blurSearchInput() {
-  const searchInput = document.querySelector('.RightHeader .SearchInput input') as HTMLInputElement;
+  const searchInput = document.querySelector(
+    ".RightHeader .SearchInput input",
+  ) as HTMLInputElement;
   if (searchInput) {
     searchInput.blur();
   }
@@ -111,42 +122,59 @@ const RightColumn: FC<OwnProps & StateProps> = ({
 
   const { width: windowWidth } = useWindowSize();
   const [profileState, setProfileState] = useState<ProfileState>(
-    isSavedMessages && !isSavedDialog ? ProfileState.SavedDialogs : ProfileState.Profile,
+    isSavedMessages && !isSavedDialog
+      ? ProfileState.SavedDialogs
+      : ProfileState.Profile,
   );
-  const [managementScreen, setManagementScreen] = useState<ManagementScreens>(ManagementScreens.Initial);
-  const [selectedChatMemberId, setSelectedChatMemberId] = useState<string | undefined>();
-  const [isPromotedByCurrentUser, setIsPromotedByCurrentUser] = useState<boolean | undefined>();
+  const [managementScreen, setManagementScreen] = useState<ManagementScreens>(
+    ManagementScreens.Initial,
+  );
+  const [selectedChatMemberId, setSelectedChatMemberId] = useState<
+    string | undefined
+  >();
+  const [isPromotedByCurrentUser, setIsPromotedByCurrentUser] = useState<
+    boolean | undefined
+  >();
   const isScrolledDown = profileState !== ProfileState.Profile;
 
   const isOpen = contentKey !== undefined;
   const isProfile = contentKey === RightColumnContent.ChatInfo;
   const isManagement = contentKey === RightColumnContent.Management;
   const isStatistics = contentKey === RightColumnContent.Statistics;
-  const isMessageStatistics = contentKey === RightColumnContent.MessageStatistics;
+  const isMessageStatistics =
+    contentKey === RightColumnContent.MessageStatistics;
   const isStoryStatistics = contentKey === RightColumnContent.StoryStatistics;
   const isBoostStatistics = contentKey === RightColumnContent.BoostStatistics;
-  const isMonetizationStatistics = contentKey === RightColumnContent.MonetizationStatistics;
+  const isMonetizationStatistics =
+    contentKey === RightColumnContent.MonetizationStatistics;
   const isStickerSearch = contentKey === RightColumnContent.StickerSearch;
   const isGifSearch = contentKey === RightColumnContent.GifSearch;
   const isPollResults = contentKey === RightColumnContent.PollResults;
   const isAddingChatMembers = contentKey === RightColumnContent.AddingMembers;
   const isCreatingTopic = contentKey === RightColumnContent.CreateTopic;
   const isEditingTopic = contentKey === RightColumnContent.EditTopic;
+  const isAiAgent = contentKey === RightColumnContent.AiAgent;
   const isOverlaying = windowWidth <= MIN_SCREEN_WIDTH_FOR_STATIC_RIGHT_COLUMN;
 
   const [shouldSkipTransition, setShouldSkipTransition] = useState(!isOpen);
 
-  const renderingContentKey = useCurrentOrPrev(contentKey, true, !isChatSelected) ?? -1;
+  const renderingContentKey =
+    useCurrentOrPrev(contentKey, true, !isChatSelected) ?? -1;
 
-  useScrollNotch({
-    containerRef,
-    selector: ':scope .custom-scroll, :scope .panel-content',
-  }, [contentKey, managementScreen, chatId, threadId]);
+  useScrollNotch(
+    {
+      containerRef,
+      selector: ":scope .custom-scroll, :scope .panel-content",
+    },
+    [contentKey, managementScreen, chatId, threadId],
+  );
 
   const close = useLastCallback((shouldScrollUp = true) => {
     switch (contentKey) {
       case RightColumnContent.AddingMembers:
-        setNewChatMembersDialogState({ newChatMembersProgress: NewChatMembersProgress.Closed });
+        setNewChatMembersDialogState({
+          newChatMembersProgress: NewChatMembersProgress.Closed,
+        });
         break;
       case RightColumnContent.ChatInfo:
         if (isScrolledDown && shouldScrollUp && !isSavedMessages) {
@@ -232,6 +260,12 @@ const RightColumn: FC<OwnProps & StateProps> = ({
       case RightColumnContent.EditTopic:
         closeEditTopicPanel();
         break;
+      case RightColumnContent.AiAgent:
+        getActions().toggleAiAgentForChat({
+          chatId: chatId!,
+          isEnabled: false,
+        });
+        break;
     }
   });
 
@@ -244,7 +278,10 @@ const RightColumn: FC<OwnProps & StateProps> = ({
     addChatMembers({ chatId: chatId!, memberIds });
   });
 
-  useEffect(() => (isOpen && chatId ? captureEscKeyListener(close) : undefined), [isOpen, close, chatId]);
+  useEffect(
+    () => (isOpen && chatId ? captureEscKeyListener(close) : undefined),
+    [isOpen, close, chatId],
+  );
 
   useEffect(() => {
     setTimeout(() => {
@@ -275,22 +312,28 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   }, [isOverlaying]);
 
   // We need to clear profile state and management screen state, when changing chats
-  useLayoutEffectWithPrevDeps(([prevChatId, prevThreadId]) => {
-    if (prevChatId !== chatId || prevThreadId !== threadId) {
-      setProfileState(
-        isSavedMessages && !isSavedDialog ? ProfileState.SavedDialogs : ProfileState.Profile,
-      );
-      setManagementScreen(ManagementScreens.Initial);
-    }
-  }, [chatId, threadId, isSavedDialog, isSavedMessages]);
+  useLayoutEffectWithPrevDeps(
+    ([prevChatId, prevThreadId]) => {
+      if (prevChatId !== chatId || prevThreadId !== threadId) {
+        setProfileState(
+          isSavedMessages && !isSavedDialog
+            ? ProfileState.SavedDialogs
+            : ProfileState.Profile,
+        );
+        setManagementScreen(ManagementScreens.Initial);
+      }
+    },
+    [chatId, threadId, isSavedDialog, isSavedMessages],
+  );
 
   useHistoryBack({
-    isActive: isChatSelected && (
-      contentKey === RightColumnContent.ChatInfo
-      || contentKey === RightColumnContent.Management
-      || contentKey === RightColumnContent.AddingMembers
-      || contentKey === RightColumnContent.CreateTopic
-      || contentKey === RightColumnContent.EditTopic),
+    isActive:
+      isChatSelected &&
+      (contentKey === RightColumnContent.ChatInfo ||
+        contentKey === RightColumnContent.Management ||
+        contentKey === RightColumnContent.AddingMembers ||
+        contentKey === RightColumnContent.CreateTopic ||
+        contentKey === RightColumnContent.EditTopic),
     onBack: () => close(false),
   });
 
@@ -344,9 +387,13 @@ const RightColumn: FC<OwnProps & StateProps> = ({
       case RightColumnContent.MonetizationStatistics:
         return <MonetizationStatistics />;
       case RightColumnContent.MessageStatistics:
-        return <MessageStatistics chatId={chatId!} isActive={isOpen && isActive} />;
+        return (
+          <MessageStatistics chatId={chatId!} isActive={isOpen && isActive} />
+        );
       case RightColumnContent.StoryStatistics:
-        return <StoryStatistics chatId={chatId!} isActive={isOpen && isActive} />;
+        return (
+          <StoryStatistics chatId={chatId!} isActive={isOpen && isActive} />
+        );
       case RightColumnContent.StickerSearch:
         return <StickerSearch onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.GifSearch:
@@ -357,6 +404,8 @@ const RightColumn: FC<OwnProps & StateProps> = ({
         return <CreateTopic onClose={close} isActive={isOpen && isActive} />;
       case RightColumnContent.EditTopic:
         return <EditTopic onClose={close} isActive={isOpen && isActive} />;
+      case RightColumnContent.AiAgent:
+        return <AiRightPanel isMobile={isMobile} />;
     }
 
     return undefined; // Unreachable
@@ -365,44 +414,53 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   return (
     <div
       id="RightColumn-wrapper"
-      className={!isChatSelected ? 'is-hidden' : undefined}
+      className={!isChatSelected ? "is-hidden" : undefined}
     >
-      {isOverlaying && (
-        <div className="overlay-backdrop" onClick={close} />
-      )}
+      {isOverlaying && <div className="overlay-backdrop" onClick={close} />}
       <div id="RightColumn">
-        <RightHeader
-          chatId={chatId}
-          threadId={threadId}
-          isColumnOpen={isOpen}
-          isProfile={isProfile}
-          isManagement={isManagement}
-          isStatistics={isStatistics}
-          isBoostStatistics={isBoostStatistics}
-          isMonetizationStatistics={isMonetizationStatistics}
-          isMessageStatistics={isMessageStatistics}
-          isStoryStatistics={isStoryStatistics}
-          isStickerSearch={isStickerSearch}
-          isGifSearch={isGifSearch}
-          isPollResults={isPollResults}
-          isCreatingTopic={isCreatingTopic}
-          isEditingTopic={isEditingTopic}
-          isAddingChatMembers={isAddingChatMembers}
-          profileState={profileState}
-          managementScreen={managementScreen}
-          onClose={close}
-          onScreenSelect={setManagementScreen}
-        />
+        {!isAiAgent && (
+          <RightHeader
+            chatId={chatId}
+            threadId={threadId}
+            isColumnOpen={isOpen}
+            isProfile={isProfile}
+            isManagement={isManagement}
+            isStatistics={isStatistics}
+            isBoostStatistics={isBoostStatistics}
+            isMonetizationStatistics={isMonetizationStatistics}
+            isMessageStatistics={isMessageStatistics}
+            isStoryStatistics={isStoryStatistics}
+            isStickerSearch={isStickerSearch}
+            isGifSearch={isGifSearch}
+            isPollResults={isPollResults}
+            isCreatingTopic={isCreatingTopic}
+            isEditingTopic={isEditingTopic}
+            isAddingChatMembers={isAddingChatMembers}
+            profileState={profileState}
+            managementScreen={managementScreen}
+            onClose={close}
+            onScreenSelect={setManagementScreen}
+          />
+        )}
         <Transition
           ref={containerRef}
-          name={resolveTransitionName('layers', animationLevel, shouldSkipTransition || shouldSkipHistoryAnimations)}
+          name={resolveTransitionName(
+            "layers",
+            animationLevel,
+            shouldSkipTransition || shouldSkipHistoryAnimations,
+          )}
           renderCount={MAIN_SCREENS_COUNT + MANAGEMENT_SCREENS_COUNT}
-          activeKey={isManagement ? MAIN_SCREENS_COUNT + managementScreen : renderingContentKey}
+          activeKey={
+            isManagement
+              ? MAIN_SCREENS_COUNT + managementScreen
+              : renderingContentKey
+          }
           shouldCleanup
           cleanupExceptionKey={
-            (renderingContentKey === RightColumnContent.MessageStatistics
-              || renderingContentKey === RightColumnContent.StoryStatistics)
-              ? RightColumnContent.Statistics : undefined
+            renderingContentKey === RightColumnContent.MessageStatistics ||
+            renderingContentKey === RightColumnContent.StoryStatistics
+              ? RightColumnContent.Statistics
+              : undefined
           }
         >
           {renderContent}
@@ -412,20 +470,30 @@ const RightColumn: FC<OwnProps & StateProps> = ({
   );
 };
 
-export default memo(withGlobal<OwnProps>(
-  (global, { isMobile }): Complete<StateProps> => {
+export default memo(
+  withGlobal<OwnProps>((global, { isMobile }): Complete<StateProps> => {
     const { chatId, threadId } = selectCurrentMessageList(global) || {};
 
     const areActiveChatsLoaded = selectAreActiveChatsLoaded(global);
     const { animationLevel } = selectSharedSettings(global);
     const {
-      management, shouldSkipHistoryAnimations, shouldCloseRightColumn, chatInfo,
+      management,
+      shouldSkipHistoryAnimations,
+      shouldCloseRightColumn,
+      chatInfo,
     } = selectTabState(global);
-    const nextManagementScreen = chatId ? management.byChatId[chatId]?.nextScreen : undefined;
+    const nextManagementScreen = chatId
+      ? management.byChatId[chatId]?.nextScreen
+      : undefined;
 
     const isOwnProfile = chatInfo?.isOwnProfile;
-    const isSavedMessages = chatId && !isOwnProfile ? selectIsChatWithSelf(global, chatId) : undefined;
-    const isSavedDialog = chatId ? getIsSavedDialog(chatId, threadId, global.currentUserId) : undefined;
+    const isSavedMessages =
+      chatId && !isOwnProfile
+        ? selectIsChatWithSelf(global, chatId)
+        : undefined;
+    const isSavedDialog = chatId
+      ? getIsSavedDialog(chatId, threadId, global.currentUserId)
+      : undefined;
 
     return {
       contentKey: selectRightColumnContentKey(global, isMobile),
@@ -440,5 +508,5 @@ export default memo(withGlobal<OwnProps>(
       isSavedDialog,
       isOwnProfile,
     };
-  },
-)(RightColumn));
+  })(RightColumn),
+);

@@ -22,6 +22,11 @@
   > .Transition {
     overflow: hidden;
     height: calc(100% - var(--header-height));
+
+    // When RightHeader is hidden (e.g. AiAgent mode), take full height
+    &:first-child {
+      height: 100%;
+    }
   }
 
   .panel-content {

@@ -1,0 +1,742 @@
+@use '../../styles/mixins';
+
+// ─────────────────────────────────────────────
+// Root panel
+// ─────────────────────────────────────────────
+.AiRightPanel {
+  position: absolute;
+  z-index: 100;
+  inset: 0;
+
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+
+  color: var(--color-text);
+
+  background-color: var(--color-background);
+
+  // Hide content behind settings panel
+  &:has(.AiSettings) {
+    .AiRightPanel__messages-area,
+    .AiRightPanel__footer {
+      visibility: hidden;
+    }
+  }
+
+  // ── Resize handle ──
+  &__resize-handle {
+    cursor: ew-resize;
+
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    bottom: 0;
+    left: 0;
+
+    width: 0.25rem;
+
+    &:hover {
+      opacity: 0.3;
+      background: var(--color-primary);
+    }
+  }
+
+  // ── Header ──
+  &__header {
+    position: relative;
+    z-index: 3;
+
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.25rem;
+    align-items: center;
+
+    height: var(--header-height, 3.5rem);
+    padding: 0 0.5rem;
+
+    background: var(--color-background);
+  }
+
+  &__header-btn {
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    &:hover { color: var(--color-text); }
+    &.is-active { color: var(--color-primary); }
+  }
+
+  &__header-info {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+
+  &__header-title {
+    overflow: hidden;
+
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium, 500);
+    line-height: var(--header-height, 3.5rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // ── Model menu (glass dropdown) ──
+  &__model-trigger-wrap {
+    position: relative;
+    display: inline-flex;
+    align-self: center;
+  }
+
+  &__model-menu {
+    .bubble {
+      border-radius: var(--border-radius-default);
+      background: var(--color-background-compact-menu);
+      backdrop-filter: blur(25px);
+      box-shadow:
+        0 0.25rem 1rem rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+
+      body.no-menu-blur & {
+        background: var(--color-background);
+        backdrop-filter: none;
+      }
+    }
+
+    .MenuItem .icon-check {
+      color: var(--color-primary);
+    }
+  }
+
+  // ── Messages area ──
+  &__messages-area {
+    position: relative;
+
+    overflow-y: auto;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    min-height: 0;
+  }
+
+  &__bg {
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+  }
+
+  // ── Messages — FORCED alignment ──
+  &__messages {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: auto;
+    padding: 0.5rem;
+  }
+
+  // Override ALL Telegram Message positioning with high specificity
+  .Message.message-list-item {
+    display: flex !important;
+    flex-direction: column !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    .message-content {
+      width: 100% !important;
+      min-width: 0;
+      max-width: 100% !important;
+
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    // Bot → LEFT
+    &:not(.own) {
+      align-items: flex-start !important;
+
+      .message-content {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      .MessageAppendix {
+        display: none !important;
+      }
+    }
+
+    // User → RIGHT
+    &.own {
+      align-items: flex-end !important;
+
+      .message-content {
+        text-align: left !important;
+      }
+    }
+  }
+
+  &__msg-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-borders);
+  }
+
+  &__notice {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+
+    max-width: 90%;
+    margin: 1rem auto;
+    padding: 0.75rem 1.125rem;
+    border-radius: var(--border-radius-messages, 0.9375rem);
+
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+
+    background: var(--color-background);
+  }
+
+  &__cursor {
+    display: inline-block;
+    width: 0.5ch;
+    color: var(--color-primary);
+    animation: ai-blink 0.9s steps(1) infinite;
+  }
+
+  @keyframes ai-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  // ── Custom Footer ──
+  &__footer {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 0.375rem;
+
+    padding: 0.375rem 0.5rem 0.5rem;
+
+    background: var(--color-background);
+
+    @media (max-width: 600px) {
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  &__model-selector {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    padding: 0 0.25rem;
+  }
+
+  &__model-chip {
+    cursor: pointer;
+    user-select: none;
+
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--color-text);
+    }
+
+    .icon {
+      font-size: 1.125rem;
+    }
+
+    .icon-down {
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+  }
+
+  &__model-menu {
+    // Nested radius: outer 0.75rem, padding 0.25rem → inner 0.5rem
+    .bubble {
+      margin-left: 0.5rem;
+      padding: 0.25rem;
+      border-radius: 0.75rem;
+
+      background: var(--color-background-compact-menu);
+      backdrop-filter: blur(25px);
+      box-shadow:
+        0 0.25rem 1rem rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+
+      body.no-menu-blur & {
+        background: var(--color-background);
+        backdrop-filter: none;
+      }
+    }
+
+    .MenuItem {
+      border-radius: 0.5rem;
+    }
+
+    .MenuItem .icon-check {
+      color: var(--color-primary);
+    }
+  }
+
+  // Nested radius: outer 1.25rem, padding 0.3125rem → inner 0.9375rem
+  &__input-row {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+
+    width: 100%;
+    padding: 0.3125rem;
+    border-radius: 1.25rem;
+
+    background: var(--color-background-secondary);
+  }
+
+  &__input-wrapper {
+    display: flex;
+    flex: 1;
+    align-items: center;
+
+    min-width: 0;
+    height: 2.25rem;
+    padding: 0 0.75rem;
+  }
+
+  &__attach-btn,
+  &__send-btn {
+    border-radius: 0.9375rem !important; // 1.25 - 0.3125 = nested radius
+  }
+
+  &__input {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+
+    font-family: var(--font-family, inherit);
+    font-size: var(--composer-text-size, 1rem);
+    color: var(--color-text);
+
+    background: transparent;
+    outline: none;
+    caret-color: var(--color-primary);
+
+    &::placeholder {
+      color: var(--color-placeholders);
+      opacity: 1;
+    }
+  }
+
+  &__attach-btn,
+  &__send-btn {
+    flex-shrink: 0;
+
+    width: 2.5rem;
+    height: 2.5rem;
+
+    color: var(--color-text-secondary);
+
+    background: transparent !important;
+
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--color-text);
+    }
+  }
+
+  &__send-btn.can-send {
+    color: var(--color-primary);
+    background: transparent !important;
+
+    &:hover {
+      color: var(--color-primary-shade);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// Markdown
+// ─────────────────────────────────────────────
+.AiMarkdown {
+  overflow: hidden;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+
+  // Reset any inherited Telegram styles
+  p, ul, ol, h1, h2, h3, h4, h5, h6, blockquote {
+    all: revert;
+  }
+
+  &__text {
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0.5rem 0 0.25rem;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  &__p {
+    margin: 0 0 0.125rem;
+    line-height: 1.3125;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
+  &__br {
+    height: 0.5rem;
+  }
+
+  &__list {
+    margin: 0.25rem 0 0.5rem;
+    padding-inline-start: 1.25rem;
+    li { margin-bottom: 0.1875rem; }
+  }
+
+  code {
+    padding: 0.1em 0.3em;
+    border-radius: 0.25rem;
+
+    font-family: var(--font-family-monospace, monospace);
+    font-size: 0.85em;
+    word-break: break-all;
+
+    background: var(--color-borders, rgba(0, 0, 0, 0.35));
+  }
+
+  pre {
+    overflow-x: auto;
+
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+
+    background: var(--color-borders, rgba(0, 0, 0, 0.35));
+
+    code {
+      padding: 0;
+      word-break: normal;
+      white-space: pre;
+      background: none;
+    }
+  }
+
+  &__code-block {
+    position: relative;
+    width: 100%;
+    margin: 0.375rem 0;
+
+    .AiMarkdown__code-actions {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+
+      display: flex;
+      gap: 0.25rem;
+
+      opacity: 0;
+
+      transition: opacity 0.2s ease;
+
+      .AiMarkdown__code-btn {
+        width: 1.5rem;
+        height: 1.5rem;
+
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+
+        background: var(--color-background-compact-menu);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+          color: var(--color-text);
+        }
+      }
+    }
+
+    &:hover .AiMarkdown__code-actions {
+      opacity: 1;
+    }
+  }
+
+  a {
+    color: var(--color-links);
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+
+  blockquote {
+    margin: 0.375rem 0;
+    padding-left: 0.625rem;
+    border-left: 2px solid var(--color-primary);
+    color: var(--color-text-secondary);
+  }
+
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+}
+
+// ─────────────────────────────────────────────
+// Settings
+// ─────────────────────────────────────────────
+.AiSettings {
+  position: absolute;
+  z-index: 200;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+
+  background: var(--color-background);
+
+  animation: ai-slide-in 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+
+  @keyframes ai-slide-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+
+  &__header {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+
+    height: var(--header-height, 3.5rem);
+    padding: 0 0.5rem 0 1rem;
+
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+
+  &__title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-medium, 500);
+    color: var(--color-text);
+  }
+
+  &__body {
+    overflow-y: auto;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    padding: 0;
+
+    background: var(--color-background);
+  }
+
+  &__section {
+    padding: 0.5rem 0;
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0.5rem 1rem 0.5rem;
+
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium, 500);
+    color: var(--color-primary);
+  }
+
+  &__section-content {
+    background: var(--color-background);
+  }
+
+  &__section-hint {
+    margin: 0.25rem 1rem 0;
+    font-size: 0.875rem;
+    line-height: 1.3125;
+    color: var(--color-text-secondary);
+  }
+
+  // ── Checkbox list item (Telegram-native style) ──
+  &__list-item {
+    cursor: pointer;
+    user-select: none;
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    min-height: 3rem;
+    padding: 0 1rem 0 3.25rem;
+
+    &:hover {
+      border-radius: var(--border-radius-default);
+      background: var(--color-chat-hover);
+    }
+
+    input[type="checkbox"] {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+    }
+  }
+
+  &__list-item-text {
+    flex: 1;
+
+    min-width: 0;
+
+    font-size: 1rem;
+    line-height: 1.375;
+    color: var(--color-text);
+  }
+
+  // Telegram-native checkbox visual
+  &__checkbox-mark {
+    pointer-events: none;
+
+    position: absolute;
+    top: 50%;
+    left: 0.875rem;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 0.125rem solid var(--color-borders-input);
+    border-radius: 0.25rem;
+
+    background-color: var(--color-background);
+
+    transition: border-color 0.1s ease, background-color 0.1s ease;
+
+    &::after {
+      content: '';
+
+      transform: rotate(-45deg) translateY(-0.0625rem);
+
+      display: block;
+
+      width: 0.625rem;
+      height: 0.375rem;
+      border-bottom: 2px solid #fff;
+      border-left: 2px solid #fff;
+
+      opacity: 0;
+
+      transition: opacity 0.1s ease;
+    }
+
+    &.is-checked {
+      border-color: var(--color-primary);
+      background-color: var(--color-primary);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__input-field {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1rem;
+  }
+
+  &__input,
+  &__textarea {
+    width: 100%;
+    padding: 0.75rem 0;
+    border: none;
+    border-bottom: 1px solid var(--color-borders);
+
+    font-size: 1rem;
+    color: var(--color-text);
+
+    appearance: none;
+    background: transparent;
+    outline: none;
+
+    transition: border-color 0.15s ease;
+
+    &::placeholder { color: var(--color-placeholders); }
+
+    &:focus {
+      border-bottom-color: var(--color-primary);
+    }
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 4.5rem;
+    font-family: var(--font-family, inherit);
+    line-height: 1.4;
+  }
+
+  &__label-link {
+    font-size: 0.875rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    text-transform: none;
+    white-space: nowrap;
+    &:hover { text-decoration: underline; }
+  }
+
+  &__footer {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: center;
+
+    padding: 1rem;
+
+    background: var(--color-background);
+
+    .Button {
+      width: 100%;
+    }
+  }
+
+  &__overlay {
+    display: none;
+  }
+}
