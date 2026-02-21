@@ -12,6 +12,12 @@ export interface AiAgentSettings {
   model: AiAgentModel;
   salesContextPrompt: string;
   enabledModels?: AiAgentModel[];
+  maxVideos?: number;
+  maxVoices?: number;
+  promptMain?: string;
+  promptAutoAnalysis?: string;
+  promptMiniAnalysisText?: string;
+  promptMiniAnalysisPhoto?: string;
 }
 
 export interface ChatHistoryMessage {

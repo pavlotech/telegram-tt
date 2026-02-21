@@ -162,6 +162,12 @@ interface StateProps {
   chatHistory: import("./types").ChatHistoryMessage[];
   userDossier: string;
   enabledModels: AiAgentModel[];
+  maxVideos: number;
+  maxVoices: number;
+  promptMain: string;
+  promptAutoAnalysis: string;
+  promptMiniAnalysisText: string;
+  promptMiniAnalysisPhoto: string;
 }
 
 const ALL_MODELS: Array<{ value: AiAgentModel; label: string }> = [
@@ -181,6 +187,29 @@ type Message = {
   isStreaming?: boolean;
 };
 
+const formatAiError = (err: any) => {
+  let errorMessage = "Неизвестная ошибка";
+  if (err instanceof Error) {
+    errorMessage = err.message;
+  } else if (typeof err === "string") {
+    errorMessage = err;
+  } else {
+    errorMessage = JSON.stringify(err);
+  }
+  try {
+    const jsonMatch = errorMessage.match(/\\{[\\s\\S]*\\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed?.error?.message) {
+        errorMessage = parsed.error.message;
+      }
+    }
+  } catch (e) {
+    // Ignore
+  }
+  return `Ошибка: ${errorMessage}`;
+};
+
 const AiRightPanel: FC<OwnProps & StateProps> = ({
   chatId,
   isAiAgentOpen,
@@ -190,6 +219,12 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
   chatHistory,
   userDossier,
   enabledModels,
+  maxVideos,
+  maxVoices,
+  promptMain,
+  promptAutoAnalysis,
+  promptMiniAnalysisText,
+  promptMiniAnalysisPhoto,
 }) => {
   const { toggleAiAgentForChat, updateAiAgentSettings } = getActions();
   const { isDesktop } = useAppLayout();
@@ -207,6 +242,17 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
   const [localPrompt, setLocalPrompt] = useState(salesContextPrompt);
   const [localEnabledModels, setLocalEnabledModels] =
     useState<AiAgentModel[]>(enabledModels);
+  const [localMaxVideos, setLocalMaxVideos] = useState(maxVideos);
+  const [localMaxVoices, setLocalMaxVoices] = useState(maxVoices);
+  const [localPromptMain, setLocalPromptMain] = useState(promptMain);
+  const [localPromptAutoAnalysis, setLocalPromptAutoAnalysis] =
+    useState(promptAutoAnalysis);
+  const [localPromptMiniText, setLocalPromptMiniText] = useState(
+    promptMiniAnalysisText,
+  );
+  const [localPromptMiniPhoto, setLocalPromptMiniPhoto] = useState(
+    promptMiniAnalysisPhoto,
+  );
 
   const hasAutoAnalyzed = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>();
@@ -223,7 +269,24 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
     setLocalModel(model);
     setLocalPrompt(salesContextPrompt);
     setLocalEnabledModels(enabledModels);
-  }, [apiKey, model, salesContextPrompt, enabledModels]);
+    setLocalMaxVideos(maxVideos);
+    setLocalMaxVoices(maxVoices);
+    setLocalPromptMain(promptMain);
+    setLocalPromptAutoAnalysis(promptAutoAnalysis);
+    setLocalPromptMiniText(promptMiniAnalysisText);
+    setLocalPromptMiniPhoto(promptMiniAnalysisPhoto);
+  }, [
+    apiKey,
+    model,
+    salesContextPrompt,
+    enabledModels,
+    maxVideos,
+    maxVoices,
+    promptMain,
+    promptAutoAnalysis,
+    promptMiniAnalysisText,
+    promptMiniAnalysisPhoto,
+  ]);
 
   useEffect(() => {
     hasAutoAnalyzed.current = false;
@@ -317,16 +380,21 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
     setIsAiLoading(true);
 
     try {
-      let promptText = `Собеседник только что написал новое сообщение:\n"${msg.text}"\n\nДай моментальный, очень короткий анализ или идею для ответа (1-2 предложения максимум). Без воды.`;
+      let promptText = promptMiniAnalysisText.replace("{text}", msg.text || "");
 
       if (msg.isPhoto) {
-        promptText = `Собеседник только что прислал фото.${msg.text ? ` С подписью: "${msg.text}"` : ""}\n\nДай моментальный, очень короткий анализ фото для ответа (1-2 предложения максимум). Без воды.`;
+        promptText = promptMiniAnalysisPhoto.replace(
+          "{caption}",
+          msg.text ? ` С подписью: "${msg.text}"` : "",
+        );
       }
 
       const responseStream = aiApiService.streamChatStrategy(
         apiKey,
         model,
-        "ДОСЬЕ ПОЛЬЗОВАТЕЛЯ:\n" + userDossier + "\n\n" + salesContextPrompt,
+        promptMain
+          .replace("{userDossier}", userDossier)
+          .replace("{salesContextPrompt}", salesContextPrompt),
         [
           {
             role: "User",
@@ -356,7 +424,7 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
       setMessages((prev) =>
         prev.map((m) =>
           m.id === botMessageId
-            ? { ...m, text: `Ошибка: ${err.message}`, isStreaming: false }
+            ? { ...m, text: formatAiError(err), isStreaming: false }
             : m,
         ),
       );
@@ -373,11 +441,9 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
     setIsAiLoading(true);
 
     try {
-      const systemPrompt =
-        "Проанализируй этот чат и дай очень краткое саммари (2-3 предложения) и рекомендации маркдауном.\n\nДОСЬЕ НА ПОЛЬЗОВАТЕЛЯ:\n" +
-        userDossier +
-        "\n\n" +
-        salesContextPrompt;
+      const systemPrompt = promptAutoAnalysis
+        .replace("{userDossier}", userDossier)
+        .replace("{salesContextPrompt}", salesContextPrompt);
       const responseStream = aiApiService.streamChatStrategy(
         apiKey,
         model,
@@ -404,7 +470,7 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
       setMessages((prev) =>
         prev.map((m) =>
           m.id === botMessageId
-            ? { ...m, text: `Ошибка: ${err.message}`, isStreaming: false }
+            ? { ...m, text: formatAiError(err), isStreaming: false }
             : m,
         ),
       );
@@ -429,6 +495,12 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
       model: localModel,
       salesContextPrompt: localPrompt,
       enabledModels: localEnabledModels,
+      maxVideos: localMaxVideos,
+      maxVoices: localMaxVoices,
+      promptMain: localPromptMain,
+      promptAutoAnalysis: localPromptAutoAnalysis,
+      promptMiniAnalysisText: localPromptMiniText,
+      promptMiniAnalysisPhoto: localPromptMiniPhoto,
     });
     setIsSettingsOpen(false);
   };
@@ -467,13 +539,9 @@ const AiRightPanel: FC<OwnProps & StateProps> = ({
         .map((m) => `${m.role === "user" ? "User" : "AI"}: ${m.text}`)
         .join("\n");
 
-      const systemPrompt = `Ты — профессиональный ИИ-ассистент внутри Telegram. Отвечай максимально коротко, по существу, без лишних слов.
-
-ДАННЫЕ О СОБЕСЕДНИКЕ:
-${userDossier}
-
-ИНСТРУКЦИЯ И КОНТЕКСТ:
-${salesContextPrompt}`;
+      const systemPrompt = promptMain
+        .replace("{userDossier}", userDossier)
+        .replace("{salesContextPrompt}", salesContextPrompt);
 
       const fullHistory = [
         ...(chatHistory as any),
@@ -506,7 +574,7 @@ ${salesContextPrompt}`;
       setMessages((prev) =>
         prev.map((m) =>
           m.id === botMessageId
-            ? { ...m, text: `Ошибка: ${err.message}`, isStreaming: false }
+            ? { ...m, text: formatAiError(err), isStreaming: false }
             : m,
         ),
       );
@@ -829,7 +897,25 @@ ${salesContextPrompt}`;
             </div>
             {/* System prompt section */}
             <div className="AiSettings__section">
-              <div className="AiSettings__section-header">Системный промпт</div>
+              <div className="AiSettings__section-header">
+                Основной системный промпт
+              </div>
+              <div className="AiSettings__section-content">
+                <div className="AiSettings__input-field">
+                  <textarea
+                    className="AiSettings__textarea"
+                    value={localPromptMain}
+                    onChange={(e) => setLocalPromptMain(e.target.value)}
+                    placeholder="Системный промпт (используйте {userDossier} и {salesContextPrompt})"
+                    rows={5}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="AiSettings__section">
+              <div className="AiSettings__section-header">
+                Инструкция и контекст продаж
+              </div>
               <div className="AiSettings__section-content">
                 <div className="AiSettings__input-field">
                   <textarea
@@ -842,7 +928,113 @@ ${salesContextPrompt}`;
                 </div>
               </div>
               <div className="AiSettings__section-hint">
-                Этот промпт будет использоваться как системная инструкция для ИИ
+                Вставляется вместо {"{salesContextPrompt}"} в других промптах
+              </div>
+            </div>
+            <div className="AiSettings__section">
+              <div className="AiSettings__section-header">
+                Промпт для авто-анализа чата
+              </div>
+              <div className="AiSettings__section-content">
+                <div className="AiSettings__input-field">
+                  <textarea
+                    className="AiSettings__textarea"
+                    value={localPromptAutoAnalysis}
+                    onChange={(e) => setLocalPromptAutoAnalysis(e.target.value)}
+                    placeholder="Промпт для авто-анализа чата (переменные {userDossier}, {salesContextPrompt})"
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="AiSettings__section">
+              <div className="AiSettings__section-header">
+                Промпт для мини-анализа (текст)
+              </div>
+              <div className="AiSettings__section-content">
+                <div className="AiSettings__input-field">
+                  <textarea
+                    className="AiSettings__textarea"
+                    value={localPromptMiniText}
+                    onChange={(e) => setLocalPromptMiniText(e.target.value)}
+                    placeholder="Промпт для текстовых сообщений (переменная {text})"
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="AiSettings__section">
+              <div className="AiSettings__section-header">
+                Промпт для мини-анализа (фото)
+              </div>
+              <div className="AiSettings__section-content">
+                <div className="AiSettings__input-field">
+                  <textarea
+                    className="AiSettings__textarea"
+                    value={localPromptMiniPhoto}
+                    onChange={(e) => setLocalPromptMiniPhoto(e.target.value)}
+                    placeholder="Промпт для фото сообщений (переменная {caption})"
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Max Videos section */}
+            <div className="AiSettings__section">
+              <div className="AiSettings__section-header">
+                Максимум анализируемых видео в истории
+              </div>
+              <div
+                className="AiSettings__section-content"
+                style="display: flex; align-items: center; gap: 10px; padding: 10px 16px;"
+              >
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={localMaxVideos}
+                  onChange={(e) =>
+                    setLocalMaxVideos(
+                      Number((e.target as HTMLInputElement).value),
+                    )
+                  }
+                  style="flex: 1;"
+                />
+                <div style="min-width: 24px; text-align: right; font-weight: 500;">
+                  {localMaxVideos}
+                </div>
+              </div>
+              <div className="AiSettings__section-hint">
+                Google Gemini API поддерживает максимум 10 видеофайлов.
+              </div>
+            </div>
+            {/* Max Voices section */}
+            <div className="AiSettings__section">
+              <div className="AiSettings__section-header">
+                Максимум анализируемых голосовых в истории
+              </div>
+              <div
+                className="AiSettings__section-content"
+                style="display: flex; align-items: center; gap: 10px; padding: 10px 16px;"
+              >
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={localMaxVoices}
+                  onChange={(e) =>
+                    setLocalMaxVoices(
+                      Number((e.target as HTMLInputElement).value),
+                    )
+                  }
+                  style="flex: 1;"
+                />
+                <div style="min-width: 24px; text-align: right; font-weight: 500;">
+                  {localMaxVoices}
+                </div>
+              </div>
+              <div className="AiSettings__section-hint">
+                Google Gemini API поддерживает максимум 10 аудиофайлов.
               </div>
             </div>
           </div>
@@ -946,6 +1138,28 @@ export default memo(
               isPhoto,
             };
           });
+
+        const maxVideos = global.aiAgent?.settings.maxVideos ?? 5; // default 5
+        const maxVoices = global.aiAgent?.settings.maxVoices ?? 5; // default 5
+        let videoCount = 0;
+        let voiceCount = 0;
+        for (let i = chatHistory.length - 1; i >= 0; i--) {
+          if (chatHistory[i].mediaFormat === "video") {
+            videoCount++;
+            if (videoCount > maxVideos) {
+              chatHistory[i].mediaFormat = undefined;
+              chatHistory[i].mediaHash = undefined;
+              chatHistory[i].mimeType = undefined;
+            }
+          } else if (chatHistory[i].mediaFormat === "voice") {
+            voiceCount++;
+            if (voiceCount > maxVoices) {
+              chatHistory[i].mediaFormat = undefined;
+              chatHistory[i].mediaHash = undefined;
+              chatHistory[i].mimeType = undefined;
+            }
+          }
+        }
       }
     }
 
@@ -976,6 +1190,20 @@ export default memo(
       chatHistory,
       userDossier,
       enabledModels: global.aiAgent?.settings.enabledModels || defaultModels,
+      maxVideos: global.aiAgent?.settings.maxVideos ?? 5,
+      maxVoices: global.aiAgent?.settings.maxVoices ?? 5,
+      promptMain:
+        global.aiAgent?.settings.promptMain ||
+        "Ты — профессиональный ИИ-ассистент внутри Telegram. Отвечай максимально коротко, по существу, без лишних слов.\\n\\nДАННЫЕ О СОБЕСЕДНИКЕ:\\n{userDossier}\\n\\nИНСТРУКЦИЯ И КОНТЕКСТ:\\n{salesContextPrompt}",
+      promptAutoAnalysis:
+        global.aiAgent?.settings.promptAutoAnalysis ||
+        "Проанализируй этот чат и дай очень краткое саммари (2-3 предложения) и рекомендации маркдауном.\\n\\nДОСЬЕ НА ПОЛЬЗОВАТЕЛЯ:\\n{userDossier}\\n\\n{salesContextPrompt}",
+      promptMiniAnalysisText:
+        global.aiAgent?.settings.promptMiniAnalysisText ||
+        'Собеседник только что написал новое сообщение:\\n"{text}"\\n\\nДай моментальный, очень короткий анализ или идею для ответа (1-2 предложения максимум). Без воды.',
+      promptMiniAnalysisPhoto:
+        global.aiAgent?.settings.promptMiniAnalysisPhoto ||
+        "Собеседник только что прислал фото.{caption}\\n\\nДай моментальный, очень короткий анализ фото для ответа (1-2 предложения максимум). Без воды.",
     };
   })(AiRightPanel),
 );
